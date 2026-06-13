@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>创新组周刊</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- 木质边框装饰 -->
+  <div class="wood-frame">
+    <!-- 顶部标题区 -->
+    <header class="board-header">
+      <div class="header-tape tape-left"></div>
+      <h1 class="board-title">📌 创新组周刊</h1>
+      <p class="board-subtitle">记录每周灵感与进展</p>
+      <button class="btn-add" id="btnAdd">➕ 新建周刊</button>
+      <div class="header-tape tape-right"></div>
+    </header>
+
+    <!-- 软木板主体 -->
+    <main class="cork-board" id="corkBoard">
+      <!-- 卡片由 JS 动态生成 -->
+    </main>
+
+    <!-- 底部装饰 -->
+    <footer class="board-footer">
+      <span class="chalk-dust">✏️</span>
+      <p>用心记录，每周进步一点点</p>
+      <span class="chalk-dust">✏️</span>
+    </footer>
+  </div>
+
+  <!-- 模态框：展开查看详情 -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-card" id="modalCard">
+      <button class="modal-close" id="modalClose">&times;</button>
+      <div class="modal-pin"></div>
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <div class="modal-date" id="modalDate"></div>
+      <div class="modal-content" id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- 编辑/新建模态框 -->
+  <div class="modal-overlay" id="editOverlay">
+    <div class="edit-modal" id="editModal">
+      <button class="modal-close" id="editClose">&times;</button>
+      <h2 class="edit-title" id="editTitle">新建周刊</h2>
+
+      <form id="editForm" class="edit-form">
+        <input type="hidden" id="formIndex" value="-1">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>标题</label>
+            <input type="text" id="formTitle" placeholder="如：第7期 · 新篇章" required>
+          </div>
+          <div class="form-group">
+            <label>日期</label>
+            <input type="date" id="formDate" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>摘要要点 <button type="button" class="btn-sm" id="addSummary">+ 添加</button></label>
+          <div id="summaryList" class="dynamic-list"></div>
+        </div>
+
+        <div class="form-group">
+          <label>详细内容板块 <button type="button" class="btn-sm" id="addSection">+ 添加板块</button></label>
+          <div id="sectionList" class="dynamic-list"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>卡片颜色</label>
+            <div class="color-picker" id="cardColorPicker">
+              <span class="color-dot yellow selected" data-color="yellow"></span>
+              <span class="color-dot pink" data-color="pink"></span>
+              <span class="color-dot blue" data-color="blue"></span>
+              <span class="color-dot green" data-color="green"></span>
+              <span class="color-dot orange" data-color="orange"></span>
+              <span class="color-dot purple" data-color="purple"></span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>图钉颜色</label>
+            <div class="color-picker" id="pinColorPicker">
+              <span class="color-dot pin-red selected" data-color="red"></span>
+              <span class="color-dot pin-blue" data-color="blue"></span>
+              <span class="color-dot pin-green" data-color="green"></span>
+              <span class="color-dot pin-yellow" data-color="yellow"></span>
+              <span class="color-dot pin-white" data-color="white"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>倾斜角度：<span id="rotateValue">0</span>°</label>
+          <input type="range" id="formRotate" min="-5" max="5" step="0.5" value="0">
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" id="btnCancel">取消</button>
+          <button type="submit" class="btn-save">💾 保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 删除确认框 -->
+  <div class="modal-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+      <p class="confirm-text">确定要删除这期周刊吗？</p>
+      <p class="confirm-sub" id="confirmName"></p>
+      <div class="confirm-actions">
+        <button class="btn-cancel" id="confirmNo">取消</button>
+        <button class="btn-delete" id="confirmYes">🗑️ 删除</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
