@@ -1,23 +1,3 @@
-// ===== Firebase 配置 =====
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCpQ7UbA_rR8otz69qnJx8M77GF1oEpKY",
-  authDomain: "weekly-notes-8b3e1.firebaseapp.com",
-  databaseURL: "https://weekly-notes-8b3e1-default-rtdb.firebaseio.com",
-  projectId: "weekly-notes-8b3e1",
-  storageBucket: "weekly-notes-8b3e1.firebasestorage.app",
-  messagingSenderId: "922396372987",
-  appId: "1:922396372987:web:4d7c64547a5991598fa55e",
-  measurementId: "G-FFVP0JC146"
-};
-
-// 初始化 Firebase
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const weeklyRef = ref(db, 'weekly');
-
 // ===== 默认数据（首次加载时使用） =====
 const DEFAULT_DATA = [
   {
@@ -84,67 +64,95 @@ const DEFAULT_DATA = [
 
 // ===== 数据管理 =====
 const STORAGE_KEY = 'innovation_weekly_data';
+const API_BASE_URL = 'http://192.168.21.19:3000/api/weekly';
 
-let weeklyData = [];
-
-// 从 Firebase 加载数据
 async function loadData() {
   try {
-    const snapshot = await get(weeklyRef);
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-      if (Array.isArray(data)) {
-        return data;
-      } else if (typeof data === 'object') {
-        return Object.values(data);
-      }
+    const response = await fetch(API_BASE_URL);
+    if (!response.ok) {
+      throw new Error('获取数据失败');
     }
-    await saveData(DEFAULT_DATA);
-    return JSON.parse(JSON.stringify(DEFAULT_DATA));
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.warn('从Firebase获取数据失败:', error);
+    console.warn('从API获取数据失败，使用默认数据:', error);
+    // 如果API失败，尝试从localStorage读取
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.warn('本地数据解析失败');
-      }
+      try { return JSON.parse(saved); }
+      catch (e) { console.warn('本地数据解析失败'); }
     }
     return JSON.parse(JSON.stringify(DEFAULT_DATA));
   }
 }
 
-// 保存数据到 Firebase
 async function saveData(data) {
   try {
+    // 保存到localStorage作为备份
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    await set(weeklyRef, data);
-    console.log('数据已同步到 Firebase');
+    
+    // 同步到数据库
+    for (const item of data) {
+      await saveWeeklyToDatabase(item);
+    }
   } catch (error) {
     console.error('保存数据失败:', error);
+    // 即使API失败，也保存到localStorage
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }
 }
+
+async function saveWeeklyToDatabase(item) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${item.issue}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(item)
+    });
+    
+    if (!response.ok) {
+      // 如果更新失败，尝试创建
+      const createResponse = await fetch(API_BASE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(item)
+      });
+      
+      if (!createResponse.ok) {
+        throw new Error('保存周刊到数据库失败');
+      }
+    }
+  } catch (error) {
+    console.error('保存单个周刊失败:', error);
+    throw error;
+  }
+}
+
+async function deleteWeeklyFromDatabase(issue) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${issue}`, {
+      method: 'DELETE'
+    });
+    
+    if (!response.ok) {
+      throw new Error('删除周刊失败');
+    }
+  } catch (error) {
+    console.error('删除周刊失败:', error);
+    throw error;
+  }
+}
+
+let weeklyData = [];
 
 // 初始化数据
 async function initializeData() {
   weeklyData = await loadData();
   renderCards();
-  
-  onValue(weeklyRef, (snapshot) => {
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-      const newData = Array.isArray(data) ? data : Object.values(data);
-      const oldJson = JSON.stringify(weeklyData);
-      const newJson = JSON.stringify(newData);
-      if (oldJson !== newJson) {
-        weeklyData = newData;
-        renderCards();
-        console.log('检测到远程数据更新，已自动同步');
-      }
-    }
-  });
 }
 
 // ===== 渲染卡片 =====
@@ -175,6 +183,7 @@ function renderCards() {
       <div class="card-footer">点击查看详情 →</div>
     `;
 
+    // 点击卡片主体 → 查看详情
     card.addEventListener('click', (e) => {
       if (e.target.closest('.card-actions')) return;
       openDetailModal(item);
@@ -183,6 +192,7 @@ function renderCards() {
     board.appendChild(card);
   });
 
+  // 绑定操作按钮事件
   board.querySelectorAll('.btn-edit').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -205,10 +215,11 @@ function escapeHTML(str) {
 }
 
 function formatDate(dateStr) {
+  // 支持 YYYY-MM-DD 和 YYYY.MM.DD 两种格式
   return dateStr.replace(/-/g, '.');
 }
 
-// ===== 详情模态框 =====
+// ===== 详情模态框（只读查看） =====
 function openDetailModal(item) {
   const overlay = document.getElementById('modalOverlay');
   document.getElementById('modalTitle').textContent = item.title;
@@ -247,11 +258,13 @@ function openEditModal(index) {
   document.getElementById('editTitle').textContent = isEdit ? '编辑周刊' : '新建周刊';
   document.getElementById('formIndex').value = index;
 
+  // 填充表单
   document.getElementById('formTitle').value = item ? item.title : '';
   document.getElementById('formDate').value = item ? item.date : '';
   document.getElementById('formRotate').value = item ? item.rotate : 0;
   document.getElementById('rotateValue').textContent = item ? item.rotate : 0;
 
+  // 摘要
   const summaryList = document.getElementById('summaryList');
   summaryList.innerHTML = '';
   if (item && item.summary.length) {
@@ -262,12 +275,14 @@ function openEditModal(index) {
     addSummaryRow('');
   }
 
+  // 详细板块
   const sectionList = document.getElementById('sectionList');
   sectionList.innerHTML = '';
   if (item && item.detail && item.detail.sections) {
     item.detail.sections.forEach(sec => addSectionBlock(sec.title, sec.items));
   }
 
+  // 颜色选择
   selectColor('cardColorPicker', item ? item.color : 'yellow');
   selectColor('pinColorPicker', item ? item.pinColor : 'red');
 
@@ -326,8 +341,10 @@ function addSectionBlock(title = '', items = ['']) {
     <button type="button" class="btn-add-item">+ 添加条目</button>
   `;
 
+  // 删除板块
   block.querySelector('.section-header .btn-remove').addEventListener('click', () => block.remove());
 
+  // 添加条目
   block.querySelector('.btn-add-item').addEventListener('click', () => {
     const itemsDiv = block.querySelector('.section-items');
     const row = document.createElement('div');
@@ -340,6 +357,7 @@ function addSectionBlock(title = '', items = ['']) {
     itemsDiv.appendChild(row);
   });
 
+  // 删除条目（已有条目的删除按钮）
   block.querySelectorAll('.section-items .btn-remove').forEach(btn => {
     btn.addEventListener('click', () => btn.closest('.list-item').remove());
   });
@@ -355,12 +373,14 @@ function collectFormData() {
   const color = getSelectedColor('cardColorPicker');
   const pinColor = getSelectedColor('pinColorPicker');
 
+  // 摘要
   const summary = [];
   document.getElementById('summaryList').querySelectorAll('input').forEach(input => {
     const val = input.value.trim();
     if (val) summary.push(val);
   });
 
+  // 板块
   const sections = [];
   document.getElementById('sectionList').querySelectorAll('.section-block').forEach(block => {
     const secTitle = block.querySelector('.section-header input').value.trim();
@@ -398,9 +418,11 @@ async function handleSave(e) {
   };
 
   if (currentEditIndex >= 0) {
+    // 编辑 — 保留 issue 编号
     item.issue = weeklyData[currentEditIndex].issue;
     weeklyData[currentEditIndex] = item;
   } else {
+    // 新建 — 自动编号
     const maxIssue = weeklyData.reduce((max, w) => Math.max(max, w.issue || 0), 0);
     item.issue = maxIssue + 1;
     weeklyData.push(item);
@@ -432,8 +454,10 @@ function closeConfirm() {
 
 async function doDelete() {
   if (deleteIndex >= 0) {
-    weeklyData.splice(deleteIndex, 1);
+    const item = weeklyData[deleteIndex];
     try {
+      await deleteWeeklyFromDatabase(item.issue);
+      weeklyData.splice(deleteIndex, 1);
       await saveData(weeklyData);
       renderCards();
     } catch (error) {
@@ -465,6 +489,7 @@ document.getElementById('formRotate').addEventListener('input', (e) => {
   document.getElementById('rotateValue').textContent = e.target.value;
 });
 
+// 颜色选择器点击
 document.querySelectorAll('.color-picker').forEach(picker => {
   picker.addEventListener('click', (e) => {
     const dot = e.target.closest('.color-dot');
