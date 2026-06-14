@@ -2,11 +2,37 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
 
+// 格式化日期为 YYYY-MM-DD 字符串
+function formatDate(date) {
+  if (!date) return '';
+  
+  // 如果是字符串，直接提取 YYYY-MM-DD 部分
+  if (typeof date === 'string') {
+    // 匹配 YYYY-MM-DD 格式（处理 ISO 格式和普通日期格式）
+    const match = date.match(/^\d{4}-\d{2}-\d{2}/);
+    if (match) {
+      return match[0];
+    }
+    return date;
+  }
+  
+  // Date 对象转 YYYY-MM-DD
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '';
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 // 获取所有周刊
 router.get('/', async (req, res) => {
   try {
+    // 使用 DATE_FORMAT 直接在 SQL 中格式化日期，避免时区问题
     const [reports] = await pool.query(`
-      SELECT id, issue, title, date, color, pin_color, rotate, created_at, updated_at
+      SELECT id, issue, title, date, color, pin_color, rotate, 
+             DATE_FORMAT(created_at, '%Y-%m-%d') as created_at, 
+             updated_at
       FROM weekly_reports
       ORDER BY issue ASC
     `);
@@ -47,7 +73,7 @@ router.get('/', async (req, res) => {
       return {
         issue: report.issue,
         title: report.title,
-        date: report.date,
+        date: formatDate(report.created_at),
         summary: summaries.map(s => s.content),
         detail: {
           sections: sectionsWithItems
@@ -116,7 +142,7 @@ router.get('/:issue', async (req, res) => {
     const result = {
       issue: report.issue,
       title: report.title,
-      date: report.date,
+      date: formatDate(report.date),
       summary: summaries.map(s => s.content),
       detail: {
         sections: sectionsWithItems

@@ -1,67 +1,3 @@
-// ===== 默认数据（首次加载时使用） =====
-const DEFAULT_DATA = [
-  {
-    issue: 1, date: '2026-06-01', title: '第1期 · 启航',
-    summary: ['团队组建完成，确定分工', '完成项目选题与需求分析', '制定第一阶段开发计划'],
-    detail: { sections: [
-      { title: '🚀 本周进展', items: ['团队组建完成，确定分工与职责', '完成项目选题与需求分析文档', '制定第一阶段开发计划与里程碑'] },
-      { title: '💡 灵感碰撞', items: ['头脑风暴收集了 12 个创意方向', '确定以"智能协作"为核心理念'] },
-      { title: '📋 下周计划', items: ['完成技术选型调研', '搭建项目基础框架', '设计 UI 原型初稿'] },
-    ]},
-    color: 'yellow', pinColor: 'red', rotate: -2,
-  },
-  {
-    issue: 2, date: '2026-06-08', title: '第2期 · 筑基',
-    summary: ['完成技术栈选型：React + Node.js', '搭建项目基础架构', 'UI 原型设计评审通过'],
-    detail: { sections: [
-      { title: '🚀 本周进展', items: ['完成技术栈选型：前端 React，后端 Node.js', '搭建项目基础架构与 CI/CD 流程', 'UI 原型设计评审通过，开始视觉细化'] },
-      { title: '🔧 技术决策', items: ['选用 TypeScript 提升代码质量', '采用 Tailwind CSS 加速样式开发', '数据库选用 PostgreSQL'] },
-      { title: '📋 下周计划', items: ['核心页面组件开发', '用户认证模块实现', 'API 接口设计与文档'] },
-    ]},
-    color: 'blue', pinColor: 'blue', rotate: 1.5,
-  },
-  {
-    issue: 3, date: '2026-06-15', title: '第3期 · 破土',
-    summary: ['首页与导航组件开发完成', '用户登录/注册功能上线', 'API 接口设计文档发布'],
-    detail: { sections: [
-      { title: '🚀 本周进展', items: ['首页与导航组件开发完成', '用户登录/注册功能上线并通过测试', 'API 接口设计文档发布'] },
-      { title: '🐛 踩坑记录', items: ['路由守卫逻辑重构了两次才理清', '跨域问题折腾了半天，最终用 proxy 解决', '表单验证库选型踩坑，换用了 Zod'] },
-      { title: '📋 下周计划', items: ['核心业务模块开发', '数据库表结构优化', '编写单元测试'] },
-    ]},
-    color: 'green', pinColor: 'green', rotate: -1,
-  },
-  {
-    issue: 4, date: '2026-06-22', title: '第4期 · 生长',
-    summary: ['核心业务模块开发进度 70%', '完成数据库性能优化', '引入代码审查流程'],
-    detail: { sections: [
-      { title: '🚀 本周进展', items: ['核心业务模块开发进度 70%', '完成数据库查询性能优化，响应速度提升 40%', '引入 PR 代码审查流程，提升代码质量'] },
-      { title: '📊 数据亮点', items: ['页面加载时间从 3.2s 降至 1.8s', '测试覆盖率从 45% 提升到 72%', '合并了 23 个 PR，关闭了 15 个 Issue'] },
-      { title: '📋 下周计划', items: ['完成剩余业务模块', '集成第三方服务', '准备第一轮内部演示'] },
-    ]},
-    color: 'pink', pinColor: 'yellow', rotate: 2,
-  },
-  {
-    issue: 5, date: '2026-06-29', title: '第5期 · 绽放',
-    summary: ['全部功能模块开发完成', '内部演示获得积极反馈', '启动性能优化与 Bug 修复'],
-    detail: { sections: [
-      { title: '🚀 本周进展', items: ['全部功能模块开发完成', '内部演示获得导师和同学的积极反馈', '收集到 8 条改进建议并开始落实'] },
-      { title: '🎉 里程碑', items: ['项目 Alpha 版本正式发布', '团队协作效率显著提升', '文档体系基本完善'] },
-      { title: '📋 下周计划', items: ['根据反馈优化用户体验', '性能调优与安全加固', '准备中期答辩材料'] },
-    ]},
-    color: 'orange', pinColor: 'white', rotate: -1.5,
-  },
-  {
-    issue: 6, date: '2026-07-06', title: '第6期 · 远航',
-    summary: ['用户体验优化完成', '安全审计通过', '中期答辩准备就绪'],
-    detail: { sections: [
-      { title: '🚀 本周进展', items: ['根据反馈完成 12 项用户体验优化', '安全审计通过，修复 3 个潜在漏洞', '中期答辩 PPT 与演示环境准备就绪'] },
-      { title: '💪 团队感悟', items: ['六周磨合，团队默契度大幅提升', '从零到一的过程虽然艰辛但充满成就感', '感谢每位成员的付出与坚持'] },
-      { title: '🔮 未来展望', items: ['继续完善产品细节', '探索更多创新功能可能性', '为最终答辩做好充分准备'] },
-    ]},
-    color: 'purple', pinColor: 'red', rotate: 1,
-  },
-];
-
 // ===== 数据管理 =====
 const STORAGE_KEY = 'innovation_weekly_data';
 const API_BASE_URL = 'http://192.168.21.7:3000/api/weekly';
@@ -73,32 +9,58 @@ async function loadData() {
       throw new Error('获取数据失败');
     }
     const data = await response.json();
-    return data;
+
+    if (Array.isArray(data) && data.length > 0) {
+      // 更新 localStorage 缓存为最新数据
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      return data;
+    }
+
+    // API 返回空数组时，检查 localStorage 是否有备份数据
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          console.warn('数据库为空，从本地存储恢复数据');
+          return parsed;
+        }
+      } catch (e) {
+        console.warn('本地数据解析失败');
+      }
+    }
+    // 数据库和本地都没有数据，返回空数组
+    return [];
   } catch (error) {
-    console.warn('从API获取数据失败，使用默认数据:', error);
+    console.warn('从API获取数据失败，使用本地存储:', error);
     // 如果API失败，尝试从localStorage读取
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try { return JSON.parse(saved); }
       catch (e) { console.warn('本地数据解析失败'); }
     }
-    return JSON.parse(JSON.stringify(DEFAULT_DATA));
+    return [];
   }
 }
 
 async function saveData(data) {
-  try {
-    // 保存到localStorage作为备份
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    
-    // 同步到数据库
-    for (const item of data) {
+  // 保存到localStorage作为备份
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  
+  // 同步到数据库，每个item独立处理，单个失败不影响其他
+  let allSuccess = true;
+  for (const item of data) {
+    try {
       await saveWeeklyToDatabase(item);
+    } catch (error) {
+      console.error(`保存周刊 ${item.issue} 失败:`, error);
+      allSuccess = false;
+      // 继续处理下一个，不中断循环
     }
-  } catch (error) {
-    console.error('保存数据失败:', error);
-    // 即使API失败，也保存到localStorage
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+  
+  if (!allSuccess) {
+    console.error('部分周刊保存失败');
   }
 }
 
@@ -171,11 +133,11 @@ function renderCards() {
       <div class="pin ${item.pinColor}"></div>
       <div class="card-actions">
         <button class="btn-edit" data-index="${index}" title="编辑">✏️</button>
-        <button class="btn-delete-card" data-index="${index}" title="删除">🗑️</button>
+        <button class="btn-delete-card" data-index="${index}" title="删除">️</button>
       </div>
       <div class="card-header">
         <span class="card-issue">${escapeHTML(item.title)}</span>
-        <span class="card-date">${formatDate(item.date)}</span>
+        <span class="card-date">${escapeHTML(item.date)}</span>
       </div>
       <ul class="card-body">
         ${item.summary.map(s => `<li>${escapeHTML(s)}</li>`).join('')}
@@ -215,6 +177,11 @@ function escapeHTML(str) {
 }
 
 function formatDate(dateStr) {
+  if (!dateStr) return '';
+  // 处理 ISO 格式字符串，提取 YYYY-MM-DD 部分
+  if (dateStr.includes('T')) {
+    dateStr = dateStr.split('T')[0];
+  }
   // 支持 YYYY-MM-DD 和 YYYY.MM.DD 两种格式
   return dateStr.replace(/-/g, '.');
 }
@@ -223,7 +190,7 @@ function formatDate(dateStr) {
 function openDetailModal(item) {
   const overlay = document.getElementById('modalOverlay');
   document.getElementById('modalTitle').textContent = item.title;
-  document.getElementById('modalDate').textContent = `📅 ${formatDate(item.date)}`;
+  document.getElementById('modalDate').textContent = `📅 ${item.date}`;
 
   let html = '';
   if (item.detail && item.detail.sections) {
@@ -398,8 +365,16 @@ function collectFormData() {
 }
 
 // ===== 保存（新建/编辑） =====
+let isSaving = false; // 防止重复提交的锁
+
 async function handleSave(e) {
   e.preventDefault();
+
+  // 防止重复提交
+  if (isSaving) {
+    alert('正在保存中，请稍候...');
+    return;
+  }
 
   const data = collectFormData();
 
@@ -417,24 +392,39 @@ async function handleSave(e) {
     rotate: data.rotate,
   };
 
-  if (currentEditIndex >= 0) {
-    // 编辑 — 保留 issue 编号
-    item.issue = weeklyData[currentEditIndex].issue;
-    weeklyData[currentEditIndex] = item;
-  } else {
-    // 新建 — 自动编号
-    const maxIssue = weeklyData.reduce((max, w) => Math.max(max, w.issue || 0), 0);
-    item.issue = maxIssue + 1;
-    weeklyData.push(item);
-  }
+  isSaving = true;
 
   try {
-    await saveData(weeklyData);
+    if (currentEditIndex >= 0) {
+      // 编辑 — 保留 issue 编号，只更新这一个
+      item.issue = weeklyData[currentEditIndex].issue;
+      weeklyData[currentEditIndex] = item;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(weeklyData));
+      await saveWeeklyToDatabase(item);
+    } else {
+      // 新建 — 先保存到数据库获取正确的 issue
+      const maxIssue = weeklyData.reduce((max, w) => Math.max(max, w.issue || 0), 0);
+      item.issue = maxIssue + 1;
+      
+      // 先尝试保存到数据库
+      await saveWeeklyToDatabase(item);
+      
+      // 数据库保存成功后才加入本地数组
+      weeklyData.push(item);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(weeklyData));
+    }
+    
     renderCards();
     closeEditModal();
   } catch (error) {
     console.error('保存失败:', error);
     alert('保存失败，请检查网络连接');
+    // 保存失败时从数组中移除（如果是新建）
+    if (currentEditIndex < 0 && weeklyData.includes(item)) {
+      weeklyData.pop();
+    }
+  } finally {
+    isSaving = false;
   }
 }
 
@@ -458,7 +448,8 @@ async function doDelete() {
     try {
       await deleteWeeklyFromDatabase(item.issue);
       weeklyData.splice(deleteIndex, 1);
-      await saveData(weeklyData);
+      // 更新 localStorage 备份，不需要重新同步到数据库
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(weeklyData));
       renderCards();
     } catch (error) {
       console.error('删除失败:', error);

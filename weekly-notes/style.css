@@ -155,12 +155,22 @@ body {
   margin-bottom: 12px;
   padding-bottom: 10px;
   border-bottom: 2px dashed rgba(0,0,0,0.15);
+  /* 标题不换行，省略显示 */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .card-issue {
   font-family: 'Ma Shan Zheng', cursive;
   font-size: 1.4rem;
   color: #333;
+  /* 标题不换行，省略显示 */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 }
 
 .card-date {
@@ -169,6 +179,9 @@ body {
   background: rgba(255,255,255,0.5);
   padding: 2px 8px;
   border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: 8px;
 }
 
 .card-body {
@@ -176,6 +189,11 @@ body {
   font-size: 0.95rem;
   line-height: 1.8;
   color: #444;
+  /* 内容超出限制行数后省略显示 */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
 }
 
 .card-body li {
@@ -183,6 +201,10 @@ body {
   padding-left: 18px;
   position: relative;
   margin-bottom: 4px;
+  /* 每个条目超出宽度时省略显示 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .card-body li::before {
