@@ -39,6 +39,6 @@ app.use((err, req, res, next) => {
 // 启动服务器
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`创新组周刊API服务运行在 http://localhost:${PORT}`);
-  console.log(`局域网访问地址: http://192.168.21.19:${PORT}`);
-  console.log(`前端页面: http://192.168.21.19:${PORT}/index.html`);
+  console.log(`局域网访问地址: http://192.168.21.7:${PORT}`);
+  console.log(`前端页面: http://192.168.21.7:${PORT}/index.html`);
 });

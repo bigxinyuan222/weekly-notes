@@ -64,7 +64,7 @@ const DEFAULT_DATA = [
 
 // ===== 数据管理 =====
 const STORAGE_KEY = 'innovation_weekly_data';
-const API_BASE_URL = 'http://192.168.21.19:3000/api/weekly';
+const API_BASE_URL = 'http://192.168.21.7:3000/api/weekly';
 
 async function loadData() {
   try {
