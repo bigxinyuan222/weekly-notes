@@ -14,12 +14,15 @@
   <div class="wood-frame">
     <!-- 顶部标题区 -->
     <header class="board-header">
-      <div class="header-tape tape-left"></div>
-      <h1 class="board-title">📌 创新组周刊</h1>
-      <p class="board-subtitle">记录每周灵感与进展</p>
-      <button class="btn-add" id="btnAdd">➕ 新建周刊</button>
-      <div class="header-tape tape-right"></div>
-    </header>
+    <div class="header-tape tape-left"></div>
+    <h1 class="board-title">📌 创新组周刊</h1>
+    <p class="board-subtitle">记录每周灵感与进展</p>
+    <button class="btn-add" id="btnAdd">➕ 新建周刊</button>
+    <button class="btn-add" id="btnExport">💾导出备份</button>
+    <button class="btn-add" id="btnImport">📂导入备份</button>
+    <input type="file" id="importFile" accept=".json" style="display:none;">
+    <div class="header-tape tape-right"></div>
+  </header>
 
     <!-- 软木板主体 -->
     <main class="cork-board" id="corkBoard">
