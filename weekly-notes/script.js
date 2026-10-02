@@ -510,3 +510,49 @@ document.addEventListener('keydown', (e) => {
 
 // ===== 初始化 =====
 initializeData();
+
+// ========= 新增：导入导出备份 =========
+const btnExport = document.getElementById('btnExport');
+const btnImport = document.getElementById('btnImport');
+const importFile = document.getElementById('importFile');
+
+//导出
+btnExport.addEventListener('click', () => {
+  const raw = localStorage.getItem("weekly-notes");
+  if (!raw) {
+    alert("暂无周刊数据，无法导出");
+    return;
+  }
+  const blob = new Blob([raw], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = "创新组周刊备份.json";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+//导入按钮点击唤起文件选择
+btnImport.addEventListener('click', () => {
+  importFile.click();
+});
+
+//处理导入文件
+importFile.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!Array.isArray(data)) throw new Error();
+      localStorage.setItem("weekly-notes", JSON.stringify(data));
+      render();
+      alert("✅导入备份成功！");
+    } catch {
+      alert("❌备份文件格式错误");
+    }
+    importFile.value = "";
+  };
+  reader.readAsText(file);
+});
