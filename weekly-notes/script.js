@@ -1,6 +1,6 @@
 // ===== 数据管理 =====
 const STORAGE_KEY = 'innovation_weekly_data';
-const API_BASE_URL = 'http://192.168.21.7:3000/api/weekly';
+const API_BASE_URL = '/api/weekly';
 
 async function loadData() {
   try {
@@ -46,7 +46,7 @@ async function loadData() {
 async function saveData(data) {
   // 保存到localStorage作为备份
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  
+
   // 同步到数据库，每个item独立处理，单个失败不影响其他
   let allSuccess = true;
   for (const item of data) {
@@ -58,7 +58,7 @@ async function saveData(data) {
       // 继续处理下一个，不中断循环
     }
   }
-  
+
   if (!allSuccess) {
     console.error('部分周刊保存失败');
   }
@@ -73,7 +73,7 @@ async function saveWeeklyToDatabase(item) {
       },
       body: JSON.stringify(item)
     });
-    
+
     if (!response.ok) {
       // 如果更新失败，尝试创建
       const createResponse = await fetch(API_BASE_URL, {
@@ -83,7 +83,7 @@ async function saveWeeklyToDatabase(item) {
         },
         body: JSON.stringify(item)
       });
-      
+
       if (!createResponse.ok) {
         throw new Error('保存周刊到数据库失败');
       }
@@ -99,7 +99,7 @@ async function deleteWeeklyFromDatabase(issue) {
     const response = await fetch(`${API_BASE_URL}/${issue}`, {
       method: 'DELETE'
     });
-    
+
     if (!response.ok) {
       throw new Error('删除周刊失败');
     }
@@ -133,7 +133,7 @@ function renderCards() {
       <div class="pin ${item.pinColor}"></div>
       <div class="card-actions">
         <button class="btn-edit" data-index="${index}" title="编辑">✏️</button>
-        <button class="btn-delete-card" data-index="${index}" title="删除">️</button>
+        <button class="btn-delete-card" data-index="${index}" title="删除">️🗑️</button>
       </div>
       <div class="card-header">
         <span class="card-issue">${escapeHTML(item.title)}</span>
@@ -405,15 +405,15 @@ async function handleSave(e) {
       // 新建 — 先保存到数据库获取正确的 issue
       const maxIssue = weeklyData.reduce((max, w) => Math.max(max, w.issue || 0), 0);
       item.issue = maxIssue + 1;
-      
+
       // 先尝试保存到数据库
       await saveWeeklyToDatabase(item);
-      
+
       // 数据库保存成功后才加入本地数组
       weeklyData.push(item);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(weeklyData));
     }
-    
+
     renderCards();
     closeEditModal();
   } catch (error) {
