@@ -5,7 +5,7 @@ const { pool } = require('../config/database');
 // 格式化日期为 YYYY-MM-DD 字符串
 function formatDate(date) {
   if (!date) return '';
-  
+
   // 如果是字符串，直接提取 YYYY-MM-DD 部分
   if (typeof date === 'string') {
     // 匹配 YYYY-MM-DD 格式（处理 ISO 格式和普通日期格式）
@@ -15,7 +15,7 @@ function formatDate(date) {
     }
     return date;
   }
-  
+
   // Date 对象转 YYYY-MM-DD
   const d = new Date(date);
   if (isNaN(d.getTime())) return '';
@@ -73,7 +73,7 @@ router.get('/', async (req, res) => {
       return {
         issue: report.issue,
         title: report.title,
-        date: formatDate(report.created_at),
+        date: formatDate(report.create),
         summary: summaries.map(s => s.content),
         detail: {
           sections: sectionsWithItems
@@ -162,7 +162,7 @@ router.get('/:issue', async (req, res) => {
 // 创建新周刊
 router.post('/', async (req, res) => {
   const connection = await pool.getConnection();
-  
+
   try {
     await connection.beginTransaction();
 
@@ -190,7 +190,7 @@ router.post('/', async (req, res) => {
     if (detail && detail.sections && Array.isArray(detail.sections)) {
       for (let i = 0; i < detail.sections.length; i++) {
         const section = detail.sections[i];
-        
+
         const [sectionResult] = await connection.query(`
           INSERT INTO weekly_sections (report_id, title, sort_order)
           VALUES (?, ?, ?)
@@ -211,10 +211,10 @@ router.post('/', async (req, res) => {
     }
 
     await connection.commit();
-    res.status(201).json({ 
-      success: true, 
+    res.status(201).json({
+      success: true,
       message: '周刊创建成功',
-      id: reportId 
+      id: reportId
     });
   } catch (error) {
     await connection.rollback();
@@ -228,7 +228,7 @@ router.post('/', async (req, res) => {
 // 更新周刊
 router.put('/:issue', async (req, res) => {
   const connection = await pool.getConnection();
-  
+
   try {
     await connection.beginTransaction();
 
@@ -275,7 +275,7 @@ router.put('/:issue', async (req, res) => {
     if (detail && detail.sections && Array.isArray(detail.sections)) {
       for (let i = 0; i < detail.sections.length; i++) {
         const section = detail.sections[i];
-        
+
         const [sectionResult] = await connection.query(`
           INSERT INTO weekly_sections (report_id, title, sort_order)
           VALUES (?, ?, ?)
@@ -296,9 +296,9 @@ router.put('/:issue', async (req, res) => {
     }
 
     await connection.commit();
-    res.json({ 
-      success: true, 
-      message: '周刊更新成功' 
+    res.json({
+      success: true,
+      message: '周刊更新成功'
     });
   } catch (error) {
     await connection.rollback();
@@ -322,9 +322,9 @@ router.delete('/:issue', async (req, res) => {
       return res.status(404).json({ error: '周刊不存在' });
     }
 
-    res.json({ 
-      success: true, 
-      message: '周刊删除成功' 
+    res.json({
+      success: true,
+      message: '周刊删除成功'
     });
   } catch (error) {
     console.error('删除周刊失败:', error);
