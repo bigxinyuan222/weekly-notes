@@ -516,22 +516,47 @@ const btnExport = document.getElementById('btnExport');
 const btnImport = document.getElementById('btnImport');
 const importFile = document.getElementById('importFile');
 
-//导出
-btnExport.addEventListener('click', () => {
-  const raw = localStorage.getItem("weekly-notes");
-  if (!raw) {
-    alert("暂无周刊数据，无法导出");
-    return;
-  }
-  const blob = new Blob([raw], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = "创新组周刊备份.json";
-  a.click();
-  URL.revokeObjectURL(url);
-});
 
+// =====================导出（修正版）=====================
+//导出
+btnExport.addEventListener('click', async () => {
+  try {
+    // 从后端 API 获取 MySQL 中的周刊数据
+    const response = await fetch('/api/weekly');
+
+    if (!response.ok) {
+      throw new Error(`请求失败：${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!Array.isArray(data) || data.length === 0) {
+      alert('暂无周刊数据，无法导出');
+      return;
+    }
+
+    // 将周刊数据转换为 JSON 文件并下载
+    const blob = new Blob(
+      [JSON.stringify(data, null, 2)],
+      { type: 'application/json;charset=utf-8' }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '创新组周刊备份.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    // 延迟释放下载地址
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (error) {
+    console.error('导出周刊失败：', error);
+    alert('导出失败，请检查后端服务是否正常运行');
+  }
+});
+// ===========================导出（修正）end=============================
 //导入按钮点击唤起文件选择
 btnImport.addEventListener('click', () => {
   importFile.click();
